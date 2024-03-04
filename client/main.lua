@@ -37,7 +37,7 @@ RegisterNetEvent('Renewed-Banking:client:openBankUI', function(data)
     TaskStartScenarioInPlace(PlayerPed, 'PROP_HUMAN_ATM', 0, true)
     if progressBar({
         label = txt,
-        duration = math.random(3000,5000),
+        duration = math.random(1000,1000),
         position = 'bottom',
         useWhileDead = false,
         allowCuffed = false,
@@ -74,16 +74,16 @@ CreateThread(function ()
             cb(newTransaction)
         end)
     end
-    exports.ox_target:addModel(Config.atms, {{
-        name = 'renewed_banking_openui',
-        event = 'Renewed-Banking:client:openBankUI',
-        icon = 'fas fa-money-check',
-        label = locale('view_bank'),
-        atm = true,
-        canInteract = function(_, distance)
-            return distance < 2.5
-        end
-    }})
+    exports['qb-target']:AddTargetModel(Config.atms,{
+        options = {{
+            type = "client",
+            event = "Renewed-Banking:client:openBankUI",
+            icon = "fas fa-money-check",
+            label = locale('view_bank'),
+            atm = true
+        }},
+        distance = 2.5
+    })
 end)
 
 local pedSpawned = false
@@ -110,7 +110,7 @@ function CreatePeds()
         SetBlipSprite(blips[k], 108)
         SetBlipDisplay(blips[k], 4)
         SetBlipScale  (blips[k], 0.80)
-        SetBlipColour (blips[k], 2)
+        SetBlipColour (blips[k], 0)
         SetBlipAsShortRange(blips[k], true)
         BeginTextCommandSetBlipName('STRING')
         AddTextComponentString('Bank')
@@ -127,18 +127,36 @@ function CreatePeds()
             return distance < 4.5
         end
     }}
-    exports.ox_target:addLocalEntity(peds.basic, targetOpts)
-    targetOpts[#targetOpts+1]={
-        name = 'renewed_banking_accountmng',
-        event = 'Renewed-Banking:client:accountManagmentMenu',
-        icon = 'fas fa-money-check',
-        label = locale('manage_bank'),
-        atm = false,
-        canInteract = function(_, distance)
-            return distance < 4.5
-        end
-    }
-    exports.ox_target:addLocalEntity(peds.adv, targetOpts)
+    exports['qb-target']:AddTargetEntity(peds.basic, {
+        options = {
+            {
+                type = "client",
+                event = "Renewed-Banking:client:openBankUI",
+                icon = "fas fa-money-check",
+                label = locale('manage_bank'),
+                atm = false
+            }
+        },
+        distance = 2.0
+    })
+    exports['qb-target']:AddTargetEntity(peds.adv, {
+        options = {
+            {
+                type = "client",
+                event = "Renewed-Banking:client:openBankUI",
+                icon = "fas fa-money-check",
+                label = locale('manage_bank'),
+                atm = false
+            },
+            {
+                type = "client",
+                event = "Renewed-Banking:client:accountManagmentMenu",
+                icon = "fas fa-money-check",
+                label = locale('manage_bank')
+            }
+        },
+        distance = 2.0
+    })
     pedSpawned = true
 end
 
@@ -158,9 +176,9 @@ end
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    exports.ox_target:removeModel(Config.atms, {'renewed_banking_openui'})
-    exports.ox_target:removeEntity(peds.basic, {'renewed_banking_openui'})
-    exports.ox_target:removeEntity(peds.adv, {'renewed_banking_openui','renewed_banking_accountmng'})
+    exports['qb-target']:RemoveTargetModel(Config.atms, {'renewed_banking_openui'})
+    exports['qb-target']:RemoveTargetEntity(peds.basic, {'renewed_banking_openui'})
+    exports['qb-target']:RemoveTargetEntity(peds.adv, {'renewed_banking_openui','renewed_banking_accountmng'})
     DeletePeds()
 end)
 
